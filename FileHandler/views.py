@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import FilesSerializer, FileUploadSerializer
 from .models import File
+from .tasks import file_handler
 
 # Create your views here.
 
@@ -16,6 +17,7 @@ def FilesListView(request):
 def FileUploadView(request):
     serializer = FileUploadSerializer(data = request.data)
     serializer.is_valid()
-    serializer.save()
+    updatedFile = serializer.save()
+    file_handler.delay(updatedFile.id)
     
-    return Response(serializer.data, status=201)
+    return Response(data=serializer.data, status=201)
